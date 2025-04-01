@@ -1,5 +1,4 @@
 import streamlit as st
-import joblib  # Assuming you have a trained model saved as a .pkl file
 
 # Title of the app
 st.title("Loan Prediction Form")
@@ -61,7 +60,7 @@ for key, value in input_data.items():
     st.write(f"{key.replace('_', ' ').title()}: {value}")
 
 # Load your trained model (make sure the model file is in the same directory or give the correct path)
-# model = joblib.load("loan_prediction_model.pkl")
+# model = mymodel.load()
 
 # Function to transform data into model's expected format (this depends on your model's input structure)
 def transform_data(input_data):
