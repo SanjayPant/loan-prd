@@ -1,5 +1,10 @@
 import streamlit as st
+from joblib import load
 
+model = load('final_model.joblib')
+
+# Predict on new data
+#prediction = final_model.predict(new_data)
 # Title of the app
 st.title("Loan Prediction Form")
 
@@ -87,7 +92,8 @@ if st.button("Submit"):
     transformed_input = transform_data(input_data)
     
     # Predict the loan status using the model (replace this with your actual prediction call)
-    # Example: loan_status = model.predict([transformed_input])
+    # Example: 
+    loan_status = model.predict([transformed_input])
     loan_status = "Approved" if transformed_input[6] > 700 else "Rejected"  # Placeholder logic for demonstration
 
     # Display result
