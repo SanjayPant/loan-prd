@@ -1,18 +1,38 @@
 import streamlit as st
+import pandas as pd
+import numpy as np
 from joblib import load
+import math
 
-model = load('final_model.joblib')
+model = load('loan_prd_model.joblib')
+scaler = load('scaler.joblib')
+la_model = load('loan_amount_model.joblib')
 
-# Predict on new data
-#prediction = final_model.predict(new_data)
+columns_order= ['income_annum',
+                    'loan_amount',
+                    'loan_term',
+                    'cibil_score',
+                    'residential_assets_value',
+                    'commercial_assets_value',
+                    'luxury_assets_value',
+                    'bank_asset_value',
+                    'loan_status']
+
+# Define the columns that are numerical
+numerical_cols = ['income_annum', 
+                  'loan_amount', 
+                  'loan_term', 
+                  'cibil_score', 
+                  'residential_assets_value', 
+                  'commercial_assets_value', 
+                  'luxury_assets_value',
+                  'bank_asset_value']
+
 # Title of the app
-st.title("Loan Prediction Form")
+st.title("Loan Prediction Form1")
 
 # Collect user inputs
 st.subheader("Enter your details:")
-
-# Number of dependents
-no_of_dependents = st.number_input("Number of Dependents", min_value=0, value=0, step=1)
 
 # Education status
 education = st.selectbox("Education", ["Graduate", "Not Graduate"])
@@ -46,7 +66,6 @@ bank_asset_value = st.number_input("Bank Asset Value", min_value=0, value=300000
 
 # Collect the input data into a list or dictionary
 input_data = {
-    "no_of_dependents": no_of_dependents,
     "education": education,
     "self_employed": self_employed,
     "income_annum": income_annum,
@@ -59,42 +78,62 @@ input_data = {
     "bank_asset_value": bank_asset_value,
 }
 
-# Display input values
-st.write("### Input Data Summary")
-for key, value in input_data.items():
-    st.write(f"{key.replace('_', ' ').title()}: {value}")
+# Function to transform data into model's expected format
+def transform_data(input_data):   
 
-# Load your trained model (make sure the model file is in the same directory or give the correct path)
-# model = mymodel.load()
+    transformed_data = {
+        "income_annum": input_data["income_annum"],
+        "loan_amount": input_data["loan_amount"],
+        "loan_term": input_data["loan_term"],
+        "cibil_score": input_data["cibil_score"],         
+        "residential_assets_value": input_data["residential_assets_value"],
+        "commercial_assets_value": input_data["commercial_assets_value"],
+        "luxury_assets_value": input_data["luxury_assets_value"],
+        "bank_asset_value": input_data["bank_asset_value"]    
+    }
+    
+    
+    # Convert the sample data into a DataFrame
+    x_data = pd.DataFrame([transformed_data])
+    
+    x_data[numerical_cols] = scaler.transform(x_data[numerical_cols])
 
-# Function to transform data into model's expected format (this depends on your model's input structure)
-def transform_data(input_data):
-    # Example transformation (you may need to encode categorical variables or scale numerical ones)
-    # This step needs to align with how your model expects the data
-    transformed_data = [
-        input_data["no_of_dependents"],
-        1 if input_data["education"] == "Graduate" else 0,  # Encode "Graduate" as 1 and "Not Graduate" as 0
-        1 if input_data["self_employed"] == "Yes" else 0,   # Encode "Yes" as 1 and "No" as 0
-        input_data["income_annum"],
-        input_data["loan_amount"],
-        input_data["loan_term"],
-        input_data["cibil_score"],
-        input_data["residential_assets_value"],
-        input_data["commercial_assets_value"],
-        input_data["luxury_assets_value"],
-        input_data["bank_asset_value"],
-    ]
-    return transformed_data
+    return x_data
 
 # When the user clicks the Submit button, pass the data to the model
 if st.button("Submit"):
     # Transform data for model input
     transformed_input = transform_data(input_data)
     
-    # Predict the loan status using the model (replace this with your actual prediction call)
-    # Example: 
-    loan_status = model.predict([transformed_input])
-    loan_status = "Approved" if transformed_input[6] > 700 else "Rejected"  # Placeholder logic for demonstration
+    # Predict the loan status using the model
+    loan_status = model.predict(transformed_input)  # Extract the first prediction from the result
 
+    ya = transformed_input['loan_amount']
+    Xa = transformed_input[['income_annum', 'loan_term', 'residential_assets_value', 
+             'commercial_assets_value', 'luxury_assets_value', 'bank_asset_value']]
+
+    # Predict the loan amount using the model
+    loan_amount = la_model.predict(Xa)  # Extract the first prediction from the result
+    print(type(ya))  # Should print <class 'float'> or <class 'int'>
+    print(type(loan_amount))  # Should print <class 'float'> or <class 'int'>
+    
+    ya_reshaped = np.full((1, 8), ya)  # Create a row with 8 identical values
+    actual_loan_amount = scaler.inverse_transform(ya_reshaped)[0, 1]
+    loan_amount_reshaped = np.full((1, 8), loan_amount)  # Create a row with 8 identical values
+    predicted_loan_amount = scaler.inverse_transform(loan_amount_reshaped)[0, 1]
+    rounded_loan_amount = math.floor(predicted_loan_amount / 1000) * 1000
+    #st.write(f"### Predicted Loan Amount:", predicted_loan_amount, actual_loan_amount)
     # Display result
-    st.write(f"### Loan Status: {loan_status}")
+    if loan_status == 1:
+        if rounded_loan_amount >= actual_loan_amount:
+            st.success("Loan Approved") 
+        else:
+            st.error("Loan Rejected")
+            st.warning("The requested loan amount exceeds the predicted loan amount.")
+            # Display the predicted loan amount
+            st.write(f"### Predicted Loan Amount: {rounded_loan_amount:,.2f}")
+    else:
+        st.error("Loan Rejected")
+        
+    #st.write(f"### Loan Status: {'Approved' if loan_status == 1 else 'Rejected'}")
+
