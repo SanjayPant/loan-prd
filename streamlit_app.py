@@ -29,7 +29,7 @@ numerical_cols = ['income_annum',
                   'bank_asset_value']
 
 # Title of the app
-st.title("Loan Prediction Form1")
+st.title("Loan Prediction Form")
 
 # Collect user inputs
 st.subheader("Enter your details:")
