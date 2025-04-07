@@ -27,42 +27,81 @@ numerical_cols = ['income_annum',
                   'commercial_assets_value', 
                   'luxury_assets_value',
                   'bank_asset_value']
+# Apply custom red and white theme using CSS
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background: linear-gradient(to right, #d1e8ed, #ffffff);  /* Gradient from red to white */
+        color: black;
+        height: 100%;
+        padding: 0;
+    }
+
+    .stButton button {
+        background-color: #ff4d4d;  /* Red button */
+        color: white;
+        border: 2px solid #0f4d4d;
+    }
+
+    .stButton button:hover {
+        background-color: #ffffff;  /* White background on hover */
+        color: #ff4d4d;  /* Red text on hover */
+        border: 2px solid #0f4d4d;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: #ff4d4d;  /* Red color for titles */
+    }
+    <style>
+    
+    
+    .stButton button {
+        background-color: blue;
+        color: white;
+        border: 2px solid blue;
+    }
+    
+    
+    
+    .stButton {
+        display: flex;
+        justify-content: center;
+    }
+    .stWrite {
+        color: black;
+    }
+    .stSuccess {
+    background-color: #89d85f;  /* Dark green background */
+    color: white;  /* White text color */
+    border: 2px solid #28a745;  /* Green border */
+    }
+    </style>
+    
+    """, unsafe_allow_html=True
+)
 
 # Title of the app
 st.title("Loan Prediction Form")
+st.markdown("""
+    Please fill out the details below, and we will predict whether your loan will be approved or not.
+""")
+# Collect user inputs in a multi-column layout
+col1, col2 = st.columns(2)
 
-# Collect user inputs
-st.subheader("Enter your details:")
+with col1:
+    education = st.selectbox("Education Status", ["Graduate", "Not Graduate"])
+    self_employed = st.selectbox("Self Employed", ["No", "Yes"])
+    cibil_score = st.number_input("CIBIL Score", min_value=0, value=650, step=10) 
+    loan_amount = st.number_input("Loan Amount", min_value=0, value=500000, step=10000)
+    loan_term = st.number_input("Loan Term (in years)", min_value=1, value=10, step=1)
 
-# Education status
-education = st.selectbox("Education", ["Graduate", "Not Graduate"])
-
-# Self-employed status
-self_employed = st.selectbox("Self Employed", ["No", "Yes"])
-
-# Income per annum
-income_annum = st.number_input("Income per annum", min_value=0, value=50000, step=1000)
-
-# Loan amount
-loan_amount = st.number_input("Loan Amount", min_value=0, value=500000, step=10000)
-
-# Loan term
-loan_term = st.number_input("Loan Term (in years)", min_value=1, value=10, step=1)
-
-# CIBIL score
-cibil_score = st.number_input("CIBIL Score", min_value=0, value=650, step=10)
-
-# Residential assets value
-residential_assets_value = st.number_input("Residential Assets Value", min_value=0, value=1000000, step=10000)
-
-# Commercial assets value
-commercial_assets_value = st.number_input("Commercial Assets Value", min_value=0, value=500000, step=10000)
-
-# Luxury assets value
-luxury_assets_value = st.number_input("Luxury Assets Value", min_value=0, value=200000, step=10000)
-
-# Bank asset value
-bank_asset_value = st.number_input("Bank Asset Value", min_value=0, value=300000, step=10000)
+with col2:
+    income_annum = st.number_input("Annual Income", min_value=0, value=50000, step=1000)
+    residential_assets_value = st.number_input("Residential Assets Value", min_value=0, value=1000000, step=10000)
+    commercial_assets_value = st.number_input("Commercial Assets Value", min_value=0, value=500000, step=10000)
+    luxury_assets_value = st.number_input("Luxury Assets Value", min_value=0, value=200000, step=10000)
+    bank_asset_value = st.number_input("Bank Asset Value", min_value=0, value=300000, step=10000)
 
 # Collect the input data into a list or dictionary
 input_data = {
